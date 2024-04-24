@@ -27,30 +27,29 @@ class LlamaService:
         output_topic = config.get("topic_output")
 
         intention_topic = config.get("topic_intention") if "topic_intention" in config else None
-        desire_topic = config.get("topic_desire") if "topic_desire" in config else None
         intentions = config.get("intentions", multi=True) if "intentions" in config else []
 
         language = config.get("language")
+        port = config.get("port")
         return cls(input_topic, output_topic,
-                   intention_topic, desire_topic, intentions,
-                   llama, emissor_client, event_bus, resource_manager, language)
+                   intention_topic, intentions,
+                   llama, emissor_client, event_bus, resource_manager, language, port)
 
     def __init__(self, input_topic: str, output_topic: str,
-                 intention_topic: str, desire_topic: str, intentions: List[str],
+                 intention_topic: str, intentions: List[str],
                  llama: Llama, emissor_client: EmissorDataClient,
-                 event_bus: EventBus, resource_manager: ResourceManager, language: str):
+                 event_bus: EventBus, resource_manager: ResourceManager, language: str, port:str):
         self._llama = llama
-        self._llama._lang = language
+        self._llama._language = language
+        self._llama._port = port
         self._event_bus = event_bus
         self._resource_manager = resource_manager
         self._emissor_client = emissor_client
 
         self._input_topic = input_topic
         self._output_topic = output_topic
-
-        self._intention_topic = intention_topic
-        self._desire_topic = desire_topic
-        self._intentions = intentions
+        self._intentions = intentions if intentions else ()
+        self._intention_topic = intention_topic if intention_topic else None
 
         self._topic_worker = None
 

@@ -5,8 +5,11 @@ from openai import OpenAI
 from cltl.llama.api import Llama
 
 class LlamaImpl(Llama):
-    def __init__(self, language="English"):
-        self._client = OpenAI(base_url="http://localhost:8000/v1", api_key="not-needed")
+    def __init__(self, language="English", port="9001"):
+        self._language = language
+        self._port = port
+        url = "http://localhost:"+self._port+"/v1"
+        self._client = OpenAI(base_url=url, api_key="not-needed")
         self._history = [
             {"role": "system", "content": "You are an intelligent assistant. You always provide well-reasoned answers that are both correct and helpful. You give a concise and short answer in"+language+"."},
         ]
@@ -36,7 +39,8 @@ class LlamaImpl(Llama):
 
 if __name__ == "__main__":
     language="Dutch"
-    llama = LlamaImpl(language)
+    port = "9001"
+    llama = LlamaImpl(language, port)
     userinput ="Wat zijn Schwartz waarden?"
     while not userinput.lower() in ["quit", "exit"]:
         response = llama._analyze(userinput)

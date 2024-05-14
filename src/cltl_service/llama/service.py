@@ -31,17 +31,17 @@ class LlamaService:
 
         language = config.get("language")
         port = config.get("port")
+        llama._language = language
+        llama._port = port
         return cls(input_topic, output_topic,
                    intention_topic, intentions,
-                   llama, emissor_client, event_bus, resource_manager, language, port)
+                   llama, emissor_client, event_bus, resource_manager)
 
     def __init__(self, input_topic: str, output_topic: str,
                  intention_topic: str, intentions: List[str],
                  llama: Llama, emissor_client: EmissorDataClient,
-                 event_bus: EventBus, resource_manager: ResourceManager, language: str, port:str):
+                 event_bus: EventBus, resource_manager: ResourceManager):
         self._llama = llama
-        self._llama._language = language
-        self._llama._port = port
         self._event_bus = event_bus
         self._resource_manager = resource_manager
         self._emissor_client = emissor_client
@@ -52,6 +52,24 @@ class LlamaService:
         self._intention_topic = intention_topic if intention_topic else None
 
         self._topic_worker = None
+
+    #     def __init__(self, input_topic: str, output_topic: str,
+    #                  intention_topic: str, intentions: List[str],
+    #                  llama: Llama, emissor_client: EmissorDataClient,
+    #                  event_bus: EventBus, resource_manager: ResourceManager, language: str, port:str):
+    #         self._llama = llama
+    #         self._llama._language = language
+    #         self._llama._port = port
+    #         self._event_bus = event_bus
+    #         self._resource_manager = resource_manager
+    #         self._emissor_client = emissor_client
+    #
+    #         self._input_topic = input_topic
+    #         self._output_topic = output_topic
+    #         self._intentions = intentions if intentions else ()
+    #         self._intention_topic = intention_topic if intention_topic else None
+    #
+    #         self._topic_worker = None
 
     @property
     def app(self):
@@ -73,13 +91,20 @@ class LlamaService:
         self._topic_worker.await_stop()
         self._topic_worker = None
 
-    def _process(self, event: Event[TextSignalEvent]):
+    def _process_org(self, event: Event[TextSignalEvent]):
         if self._is_llama_intention(event):
             greeting_payload = self._create_payload(self._llama.respond(None))
             self._event_bus.publish(self._output_topic, Event.for_payload(greeting_payload))
         elif event.metadata.topic == self._input_topic:
             response = self._llama.respond(event.payload.signal.text)
 
+            if response:
+                llama_event = self._create_payload(response)
+                self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))
+
+    def _process(self, event: Event[TextSignalEvent]):
+        if event.metadata.topic == self._input_topic:
+            response = self._llama._analyze(event.payload.signal.text)
             if response:
                 llama_event = self._create_payload(response)
                 self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))

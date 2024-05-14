@@ -5,13 +5,14 @@ from openai import OpenAI
 from cltl.llama.api import Llama
 
 class LlamaImpl(Llama):
-    def __init__(self, language="English", port="9001"):
+    def __init__(self, language="Dutch", port="9001"):
         self._language = language
         self._port = port
         url = "http://localhost:"+self._port+"/v1"
         self._client = OpenAI(base_url=url, api_key="not-needed")
         self._history = [
-            {"role": "system", "content": "You are an intelligent assistant. You always provide well-reasoned answers that are both correct and helpful. You give a concise and short answer in"+language+"."},
+            {"role": "system", "content": "You are an intelligent assistant. \
+            You always provide well-reasoned answers that are both correct and helpful. You give a concise and short answer only in the "+language+"."},
         ]
         self.started = False
 
@@ -32,7 +33,7 @@ class LlamaImpl(Llama):
                 #print(chunk.choices[0].delta.content, end="", flush=True)
                 new_message["content"] += chunk.choices[0].delta.content
         self._history.append(new_message)
-        return new_message
+        return new_message["content"]
 
 
 

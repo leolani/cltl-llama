@@ -10,6 +10,7 @@ from cltl.llama.api import Llama
 from cltl.combot.event.emissor import TextSignalEvent
 from cltl_service.emissordata.client import EmissorDataClient
 from emissor.representation.scenario import TextSignal
+from cltl.commons.language_data.sentences import GOODBYE
 
 logger = logging.getLogger(__name__)
 
@@ -53,24 +54,6 @@ class LlamaService:
 
         self._topic_worker = None
 
-    #     def __init__(self, input_topic: str, output_topic: str,
-    #                  intention_topic: str, intentions: List[str],
-    #                  llama: Llama, emissor_client: EmissorDataClient,
-    #                  event_bus: EventBus, resource_manager: ResourceManager, language: str, port:str):
-    #         self._llama = llama
-    #         self._llama._language = language
-    #         self._llama._port = port
-    #         self._event_bus = event_bus
-    #         self._resource_manager = resource_manager
-    #         self._emissor_client = emissor_client
-    #
-    #         self._input_topic = input_topic
-    #         self._output_topic = output_topic
-    #         self._intentions = intentions if intentions else ()
-    #         self._intention_topic = intention_topic if intention_topic else None
-    #
-    #         self._topic_worker = None
-
     @property
     def app(self):
         return None
@@ -91,23 +74,16 @@ class LlamaService:
         self._topic_worker.await_stop()
         self._topic_worker = None
 
-    def _process_org(self, event: Event[TextSignalEvent]):
-        if self._is_llama_intention(event):
-            greeting_payload = self._create_payload(self._llama.respond(None))
-            self._event_bus.publish(self._output_topic, Event.for_payload(greeting_payload))
-        elif event.metadata.topic == self._input_topic:
-            response = self._llama.respond(event.payload.signal.text)
-
-            if response:
-                llama_event = self._create_payload(response)
-                self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))
-
     def _process(self, event: Event[TextSignalEvent]):
         if event.metadata.topic == self._input_topic:
-            response = self._llama._analyze(event.payload.signal.text)
-            if response:
-                llama_event = self._create_payload(response)
-                self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))
+            if self._keyword(event):
+                self._event_bus.publish(self._desire_topic, Event.for_payload(DesireEvent(['quit'])))
+                self._event_bus.publish(self._text_out_topic, Event.for_payload(self._greeting_payload()))
+            else:
+                response = self._llama._analyze(event.payload.signal.text)
+                if response:
+                    llama_event = self._create_payload(response)
+                    self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))
 
     def _create_payload(self, response):
         scenario_id = self._emissor_client.get_current_scenario_id()
@@ -119,3 +95,16 @@ class LlamaService:
         return (event.metadata.topic == self._intention_topic
                 and hasattr(event.payload, "intentions")
                 and any(intention.label in self._intentions for intention in event.payload.intentions))
+
+    def _keyword(self, event):
+        if event.metadata.topic == self._input_topic:
+            return any(event.payload.signal.text.lower() == bye.lower() for bye in GOODBYE)
+
+        return False
+
+    def _greeting_payload(self):
+        scenario_id = self._emissor_client.get_current_scenario_id()
+        signal = TextSignal.for_scenario(scenario_id, timestamp_now(), timestamp_now(), None,
+                                         random.choice(GOODBYE))
+
+        return TextSignalEvent.for_agent(signal)

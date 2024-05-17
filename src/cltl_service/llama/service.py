@@ -16,6 +16,79 @@ logger = logging.getLogger(__name__)
 
 CONTENT_TYPE_SEPARATOR = ';'
 
+_RESPONSE_WORDS = [
+    "samenvatting",
+    "samenvatten",
+    "samengevat",
+    "hoi",
+    "hallo",
+    "gevaar",
+    "vervangen",
+    "banen",
+    "baan",
+    "beroep",
+    "dag",
+    "tot ziens",
+    "goedendag",
+    "goede dag",
+    "goedenmiddag",
+    "goede middag",
+    "goedenavond",
+    "goede avond",
+    "kunstmatige intelligentie",
+    "intelligentie",
+    "ai",
+    "a.i.",
+    "patroonherkenning",
+    "patronen",
+    "patroon",
+    "omgevingsfactoren",
+    "software",
+    "computerprogramma",
+    "menselijkheid",
+    "discriminatie",
+    "ethiek",
+    "ethisch",
+    "ethische discussie",
+    "voorprogrammeren",
+    "programmeren",
+    "gender",
+    "schrijf",
+    "schrijfvaardigheid",
+    "schrijfopdracht",
+    "generatieve",
+    "vervangbaarheid",
+    "vervangbaar",
+    "oplossingen",
+    "oplossing",
+    "data",
+    "copyright",
+    "eigendom",
+    "databases",
+    "database",
+    "kennisinformatie",
+    "informatie",
+    "kennis",
+    "privacy",
+    "transparantie",
+    "communicatie",
+    "verzamelen",
+    "onwikkelingen",
+    "grammaticacheck",
+    "informatieuitwisseling",
+    "abstract",
+    "abstractie",
+    "eenheidsworst",
+    "toepassingsgebied",
+    "toepassing",
+    "inventarisatie",
+    "opleidingen",
+    "opleiding",
+    "interview",
+    "gezondheidszorg",
+    "gezondheid"
+]
+
 
 class LlamaService:
     @classmethod
@@ -76,9 +149,21 @@ class LlamaService:
 
     def _process(self, event: Event[TextSignalEvent]):
         if event.metadata.topic == self._input_topic:
-            if self._keyword(event):
-                self._event_bus.publish(self._desire_topic, Event.for_payload(DesireEvent(['quit'])))
-                self._event_bus.publish(self._text_out_topic, Event.for_payload(self._greeting_payload()))
+            #             if self._keyword(event):
+            #                 self._event_bus.publish(self._desire_topic, Event.for_payload(DesireEvent(['quit'])))
+            #                 self._event_bus.publish(self._text_out_topic, Event.for_payload(self._greeting_payload()))
+            #             else:
+            ANSWER = False
+            text = event.payload.signal.text.lower()
+            text = text.strip(".?")
+            if not _RESPONSE_WORDS:
+                ANSWER = True
+            for word in text.split():
+                if word in _RESPONSE_WORDS:
+                    ANSWER = True
+                    break
+            if not ANSWER:
+                self._llama._listen(event.payload.signal.text)
             else:
                 response = self._llama._analyze(event.payload.signal.text)
                 if response:

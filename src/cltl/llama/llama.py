@@ -12,7 +12,9 @@ class LlamaImpl(Llama):
         self._client = OpenAI(base_url=url, api_key="not-needed")
         self._history = [
             {"role": "system", "content": "You are an intelligent assistant. \
-            You always provide well-reasoned answers that are both correct and helpful. You give a concise and short answer only in the "+language+"."},
+            You always provide well-reasoned answers that are both correct and helpful. \
+            You give a concise and short answer only in the language "+self._language+"." \
+            " Do not switch to English ever!"},
         ]
         self.started = False
 
@@ -22,7 +24,7 @@ class LlamaImpl(Llama):
         completion = self._client.chat.completions.create(
             model="local-model",  # this field is currently unused
             messages=self._history,
-            temperature=0.0,
+            temperature=0.5,
             stream=True,
         )
 
@@ -33,15 +35,16 @@ class LlamaImpl(Llama):
                 #print(chunk.choices[0].delta.content, end="", flush=True)
                 new_message["content"] += chunk.choices[0].delta.content
         self._history.append(new_message)
-        return new_message["content"]
+        return new_message['content']
 
 
+    def _listen(self, statement):
+        self._history.append({"role": "user", "content": statement})
 
 
 if __name__ == "__main__":
     language="Dutch"
-    port = "9001"
-    llama = LlamaImpl(language, port)
+    llama = LlamaImpl(language)
     userinput ="Wat zijn Schwartz waarden?"
     while not userinput.lower() in ["quit", "exit"]:
         response = llama._analyze(userinput)

@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import List
 
 from cltl.combot.infra.config import ConfigurationManager
@@ -16,18 +17,36 @@ logger = logging.getLogger(__name__)
 
 CONTENT_TYPE_SEPARATOR = ';'
 
-_RESPONSE_WORDS = [
+_ADDRESS1 = [
+    "Je zegt net: ",
+    "Ik hoorde je zeggen: ",
+    "Ja fascinerend je noemde: ",
+    "Mag ik daar iets op zeggen? Je zei namelijk: ",
+    "Zei je zojuist iets over: ",
+    "Je zei zojuist iets over: "
+]
+
+_ADDRESS2 = [
+    "Daar wil ik wel even op ingaan. ",
+    "Daar heb ik het volgende over te zeggen. ",
+    "Weet je wat ik daarvan vindt? ",
+    "Volgens mijn bescheiden mening: ",
+    "Ja, daar heb ik wel iets op te zeggen. ",
+    "Dit is mijn commentaar hierop. ",
+    "Mijn mening hierover is: ",
+    "Ik zou hier het volgende aan willen toevoegen: ",
+    "Tja, wat moet ik daar op zeggen? "
+
+]
+
+_COM_WORDS = [
     "samenvatting",
     "samenvatten",
     "samengevat",
     "hoi",
     "hallo",
-    "gevaar",
-    "vervangen",
-    "banen",
-    "baan",
-    "beroep",
     "dag",
+    "daag",
     "tot ziens",
     "goedendag",
     "goede dag",
@@ -35,6 +54,16 @@ _RESPONSE_WORDS = [
     "goede middag",
     "goedenavond",
     "goede avond",
+]
+
+_RESPONSE_WORDS = [
+    "gevaar",
+    "vervangen",
+    "banen",
+    "baan",
+    "beroep",
+    "chatgpt",
+    "openai",
     "kunstmatige intelligentie",
     "intelligentie",
     "ai",
@@ -73,8 +102,12 @@ _RESPONSE_WORDS = [
     "transparantie",
     "communicatie",
     "verzamelen",
+    "verzameling",
     "onwikkelingen",
+    "onwikkeling",
     "grammaticacheck",
+    "syntax",
+    "grammatica",
     "informatieuitwisseling",
     "abstract",
     "abstractie",
@@ -164,10 +197,15 @@ class LlamaService:
                     ANSWER = True
                     response_word = word
                     break
+                elif word in _COM_WORDS:
+                    ANSWER = True
+                    break
             if not ANSWER:
                 self._llama._listen(event.payload.signal.text)
             else:
-                response_word = "Je zegt net: " + event.payload.signal.text + ". Daar wil ik wel even op ingaan. "
+                if response_word:
+                    response_word = random.choice(_ADDRESS1) + response_word + ". " + random.choice(
+                        _ADDRESS2)  ### for full utterance use event.payload.signal.text
                 response = self._llama._analyze(event.payload.signal.text)
                 if response:
                     llama_event = self._create_payload(response_word + response)

@@ -156,18 +156,21 @@ class LlamaService:
             ANSWER = False
             text = event.payload.signal.text.lower()
             text = text.strip(".?")
+            response_word = ""
             if not _RESPONSE_WORDS:
                 ANSWER = True
             for word in text.split():
                 if word in _RESPONSE_WORDS:
                     ANSWER = True
+                    response_word = word
                     break
             if not ANSWER:
                 self._llama._listen(event.payload.signal.text)
             else:
+                response_word = "Je zegt net: " + event.payload.signal.text + ". Daar wil ik wel even op ingaan. "
                 response = self._llama._analyze(event.payload.signal.text)
                 if response:
-                    llama_event = self._create_payload(response)
+                    llama_event = self._create_payload(response_word + response)
                     self._event_bus.publish(self._output_topic, Event.for_payload(llama_event))
 
     def _create_payload(self, response):

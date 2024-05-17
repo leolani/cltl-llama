@@ -105,6 +105,10 @@ _RESPONSE_WORDS = [
     "verzameling",
     "onwikkelingen",
     "onwikkeling",
+    "nederlands",
+    "engels",
+    "taal",
+    "talen"
     "grammaticacheck",
     "syntax",
     "grammatica",
@@ -122,6 +126,8 @@ _RESPONSE_WORDS = [
     "gezondheid"
 ]
 
+
+# _RESPONSE_WORDS = None
 
 class LlamaService:
     @classmethod
@@ -192,14 +198,15 @@ class LlamaService:
             response_word = ""
             if not _RESPONSE_WORDS:
                 ANSWER = True
-            for word in text.split():
-                if word in _RESPONSE_WORDS:
-                    ANSWER = True
-                    response_word = word
-                    break
-                elif word in _COM_WORDS:
-                    ANSWER = True
-                    break
+            else:
+                for word in text.split():
+                    if word in _RESPONSE_WORDS:
+                        ANSWER = True
+                        response_word = word
+                        break
+                    elif word in _COM_WORDS:
+                        ANSWER = True
+                        break
             if not ANSWER:
                 self._llama._listen(event.payload.signal.text)
             else:

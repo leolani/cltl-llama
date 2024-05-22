@@ -47,6 +47,7 @@ _COM_WORDS = [
     "hallo",
     "dag",
     "daag",
+    "selfie",
     "tot ziens",
     "goedendag",
     "goede dag",
@@ -54,6 +55,15 @@ _COM_WORDS = [
     "goede middag",
     "goedenavond",
     "goede avond",
+    "wie",
+    "wat",
+    "waar",
+    "waarom",
+    "hoe",
+    "wanneer",
+    "waardoor",
+    "leolani",
+    "leonie"
 ]
 
 _RESPONSE_WORDS = [
@@ -61,6 +71,10 @@ _RESPONSE_WORDS = [
     "vervangen",
     "banen",
     "baan",
+    "bang",
+    "gender",
+    "studenten",
+    "kunst",
     "beroep",
     "chatgpt",
     "openai",
@@ -68,6 +82,14 @@ _RESPONSE_WORDS = [
     "intelligentie",
     "ai",
     "a.i.",
+    "brein",
+    "hersens",
+    "levend",
+    "machine",
+    "machines",
+    "apparaten",
+    "Big Tech",
+    "technologie",
     "patroonherkenning",
     "patronen",
     "patroon",
@@ -91,6 +113,13 @@ _RESPONSE_WORDS = [
     "oplossingen",
     "oplossing",
     "data",
+    "robot",
+    "robots",
+    "nep",
+    "fake",
+    "muziek",
+    "mozart",
+    "computer",
     "copyright",
     "eigendom",
     "databases",
@@ -108,7 +137,7 @@ _RESPONSE_WORDS = [
     "nederlands",
     "engels",
     "taal",
-    "talen"
+    "talen",
     "grammaticacheck",
     "syntax",
     "grammatica",
@@ -123,6 +152,8 @@ _RESPONSE_WORDS = [
     "opleiding",
     "interview",
     "gezondheidszorg",
+    "mensen",
+    "mens",
     "gezondheid"
 ]
 
@@ -188,15 +219,12 @@ class LlamaService:
 
     def _process(self, event: Event[TextSignalEvent]):
         if event.metadata.topic == self._input_topic:
-            #             if self._keyword(event):
-            #                 self._event_bus.publish(self._desire_topic, Event.for_payload(DesireEvent(['quit'])))
-            #                 self._event_bus.publish(self._text_out_topic, Event.for_payload(self._greeting_payload()))
-            #             else:
             ANSWER = False
             text = event.payload.signal.text.lower()
             text = text.strip(".?")
             response_word = ""
-            if not _RESPONSE_WORDS:
+            # _RESPONSE_WORDS = False
+            if not _RESPONSE_WORDS:  # __RESPONSE IS USED TO ONLY RESPOND TO CERTAIN TRIGGER WORDS
                 ANSWER = True
             else:
                 for word in text.split():
